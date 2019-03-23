@@ -6,9 +6,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 def get_msg(url):
-    page = BeautifulSoup(requests.get(url).content, features='html5lib').find_all(
-        "div", attrs={"class": "description"})[0].find_all("p")[0]
-    return bleach.clean(str(page), tags=[], strip=True)
+    try:
+        page = BeautifulSoup(requests.get(url).content, features='html5lib').find_all(
+            "div", attrs={"class": "description"})[0].find_all("p")[0]
+        x = bleach.clean(str(page), tags=[], strip=True)
+        return x
+    except:
+        return "failedFF"
 
 
 complaints_base_url = 'https://www.sikayetvar.com/cicek-sepeti'
@@ -34,14 +38,17 @@ for c in complaints:
 for _ in range(1, 1+1):
 
     def get(i):
-        to_req = complaints_base_url + "?page={}".format(i)
+        try:
+            to_req = complaints_base_url + "?page={}".format(i)
 
-        content = BeautifulSoup(requests.get(
-            complaints_base_url).content, features='html5lib')
+            content = BeautifulSoup(requests.get(
+                to_req).content, features='html5lib')
 
-        complaints = map(lambda x: base_url+x.find_all('h2')[0].find_all('a', href=True)[0]['href'], filter(lambda x: len(x.find_all(
-            'h2', attrs={'class': 'delete-message'})) == 0, content.find_all('article')))
-        
+            complaints = map(lambda x: base_url+x.find_all('h2')[0].find_all('a', href=True)[0]['href'], filter(lambda x: len(x.find_all(
+                'h2', attrs={'class': 'delete-message'})) == 0, content.find_all('article')))
+        except:
+            return
+            
         for c in complaints:
             results.append({"id": len(results), "text": get_msg(c)})
 
